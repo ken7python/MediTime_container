@@ -1,0 +1,14 @@
+.env
+
+.DS_Store
+._.DS_Store
+._.env
+._.git
+.___pycache__
+._config.py
+._end.mp3
+._error2.mp3
+._index.py
+._start.mp3
+__pycache__/
+._.gitignore

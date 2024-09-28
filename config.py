@@ -5,7 +5,8 @@ load_dotenv()
 def get_address():
     print("address config set")
     #return "http://192.168.1.25:3000"
-    return "http://192.168.1.16:3000"
+    #return "http://192.168.1.16:3000"
+    return "http://192.168.1.200:3000"
 def get_port_config():
     sunday_port = 17
     monday_port = 27

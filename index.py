@@ -204,28 +204,25 @@ class ButtonAndHistory():
         else:
             self.button = gpiozero.Button(self.port)
     def append_history(self):
-        if (self.get_same_week_day()):
-            data = {
-                "date": time.strftime("%Y/%m/%d"),
-                "label": config.get_label(),
-                "day_of_week": self.weekday,
-            }
-            print(data)
-            """
-            with open(config.get_history_file_path(),"a") as f:
-                writer = csv.writer(f)
-                value = [time.strftime("%Y/%m/%d"),config.get_label(),self.weekday]
-                if not check_history(value):
-                    writer.writerow(value)
-            """
-            json_data = json.dumps(data)
-            response = requests.post(
-                address + "/hukuyou",
-                data = json_data,
-                headers={"Content-Type": "application/json"}
-            )
-        else:
-            playsound("error.mp3")
+        data = {
+            "date": time.strftime("%Y/%m/%d"),
+            "label": config.get_label(),
+            "day_of_week": self.weekday,
+        }
+        print(data)
+        """
+        with open(config.get_history_file_path(),"a") as f:
+            writer = csv.writer(f)
+            value = [time.strftime("%Y/%m/%d"),config.get_label(),self.weekday]
+            if not check_history(value):
+                writer.writerow(value)
+        """
+        json_data = json.dumps(data)
+        response = requests.post(
+            address + "/hukuyou",
+            data = json_data,
+            headers={"Content-Type": "application/json"}
+        )
     def get_same_week_day(self):
         week = datetime.date.today().weekday()
         if week == self.day_number:
@@ -241,8 +238,12 @@ class ButtonAndHistory():
         if self.LastStatus != self.SwitchStatus:
             if self.SwitchStatus == 1:
                 print(f"{self.weekday}のボタンが押された")
-                self.append_history()
-                update_tasks()
+                if self.get_same_week_day():
+                    self.append_history()
+                    update_tasks()
+                    return "Success"
+                else:
+                    return "Failed"
         self.LastStatus = self.SwitchStatus
 def update_tasks():
     print("update_task in " + str(datetime.datetime.now() ))
@@ -288,8 +289,14 @@ def main():
             playsound("end.mp3")
         if working:
             schedule.run_pending()
+            results = []
             for switch in week_switchs:
-                switch.check_button()
+                results.append(switch.check_button())
+                if "Success" in results:
+                    print("Success")
+                elif "Failed" in results:
+                    print("Failed")
+                    playsound("error.mp3")
         dt_now = datetime.datetime.now()
         week_str = days3[dt_now.weekday()]
         dt_str = dt_now.strftime(f'%m/%d {week_str} %H:%M')

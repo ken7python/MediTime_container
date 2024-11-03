@@ -22,7 +22,7 @@ def get_LINE_taken():
 def get_history_file_path():
     return "hukuyouHistory.csv"
 def get_label():
-    return '朝'
+    return '夜'
 def startButtonPort():
     return 26
 def endButtonPort():

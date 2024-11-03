@@ -292,11 +292,11 @@ def main():
             results = []
             for switch in week_switchs:
                 results.append(switch.check_button())
-                if "Success" in results:
-                    print("Success")
-                elif "Failed" in results:
-                    print("Failed")
-                    playsound("error.mp3")
+            if "Success" in results:
+                print("Success")
+            elif "Failed" in results:
+                print("Failed")
+                playsound("error.mp3")
         dt_now = datetime.datetime.now()
         week_str = days3[dt_now.weekday()]
         dt_str = dt_now.strftime(f'%m/%d {week_str} %H:%M')

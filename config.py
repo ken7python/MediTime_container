@@ -28,4 +28,4 @@ def startButtonPort():
 def endButtonPort():
     return 20
 def request_headers():
-    return {"Content-Type": "application/json; charset=utf-8"}
+    return {"Content-Type": "application/json; charset=UTF-8"}

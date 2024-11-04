@@ -45,12 +45,12 @@ def send_message(label):
 
 #send_line_notify("test")
 def request_hukuyouTime():
-    response = requests.get(address + "/hukuyouTime")
+    response = requests.get(address + "/hukuyouTime",headers=config.request_headers())
     print("request_hukuyouTime")
     return response.json()
 
 def request_hukuyouHistory():
-    response = requests.get(address + "/hukuyou")
+    response = requests.get(address + "/hukuyou",headers=config.request_headers())
     print("request_hukuyouTime")
     return response.json()["hukuyouHistory"]
 """
@@ -221,7 +221,7 @@ class ButtonAndHistory():
         response = requests.post(
             address + "/hukuyou",
             data = json_data,
-            headers={"Content-Type": "application/json"}
+            headers=config.request_headers()
         )
     def get_same_week_day(self):
         week = datetime.date.today().weekday()

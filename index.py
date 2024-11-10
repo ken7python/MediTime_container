@@ -245,11 +245,18 @@ def main():
         if start_button.is_pressed and not working:
             v = request_hukuyouTime()["valid"]
             print(v)
+            valid_arr = []
             for port in ports:
+                print(port.label)
+                hukuyou_valid = False
                 for i in v:
+                    print(i)
                     if i["label"] == port.label:
                         hukuyou_valid = i["hukuyouTime"] == 1
-            if hukuyou_valid:
+                    print(hukuyou_valid)
+                valid_arr.append(hukuyou_valid)
+            print(valid_arr)
+            if valid_arr.count(True) > 0:
                 print("Start")
                 working = True
                 lcd_string("Working",LCD_LINE_1)

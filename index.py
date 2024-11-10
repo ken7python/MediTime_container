@@ -15,26 +15,24 @@ from playsound import playsound
 from i2clcda import *
 
 address = config.get_address()
-port_dict = config.get_port_config()
+#port_dict = config.get_port_config()
+port_dicts = config.get_ports()
 LINE_taken = config.get_LINE_taken()
 
 start_button_port = config.startButtonPort()
 end_button_port = config.endButtonPort()
 
 GPIO.setmode(GPIO.BCM)
+for port_dict in port_dicts:
+    for day,pin in port_dict.get_port_config().items():
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+"""
 for day,pin in port_dict.items():
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+"""
 GPIO.setup(start_button_port, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(end_button_port, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-"""
-GPIO.setup(port_dict["Sunday_port"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(port_dict["Monday_port"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(port_dict["Tuesday_port"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(port_dict["Wednesday_port"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(port_dict["Thursday_port"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(port_dict["Friday_port"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(port_dict["Saturday_port"], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-"""
+
 def send_line_notify(notification_message):
     line_notify_api = 'https://notify-api.line.me/api/notify'
     headers = {'Authorization': f'Bearer {LINE_taken}'}
@@ -80,37 +78,6 @@ class task():
             return True
         else: 
             return False
-        '''
-        for item in hukuyouHistory:
-            print(item)
-            date = item["date"]
-            day_of_week = item["day_of_week"]
-            label = item["label"]
-            type = item["type"]
-            if (date == time.strftime("%Y/%m/%d") and label == self.label):
-                ....
-        '''
-        
-        """
-        df = pd.read_csv(config.get_history_file_path())
-        df = df[df["date"] == time.strftime("%Y/%m/%d")]
-        df_label = df[df["label"] == self.label]
-        
-        #print(df_label )
-        #print(self.day_of_week)
-        if (df_label["label"].count() != 0 ):
-            df_week = df_label[df_label["day_of_week"] == self.day_of_week]
-            #print(df_week.count() )
-            if df_week["day_of_week"].count() != 0:
-                print(f"{self.day_of_week}の{self.label}は取り消しました")
-                return True
-            else:
-                return False
-        else:
-            return False
-        
-        """
-        
     def same_week_day(self):
         week = datetime.date.today().weekday()
         if week == self.day_number:
@@ -192,13 +159,16 @@ def check_history(value):# データーベースから取り込むべき
                 return True
     return False
 """
+day_number_dict = {"Sunday":6,"Monday":0,"Tuesday":1,"Wednesday":2,"Thursday":3,"Friday":4,"Saturday":5}
 class ButtonAndHistory():
-    def __init__(self,weekday,day_number):
+    def __init__(self,weekday,label,port):
         self.weekday = weekday
-        self.day_number = day_number
+        self.day_number = day_number_dict[weekday]
         self.LastStatus = False
         self.SwitchStatus = False
-        self.port = port_dict[self.weekday + "_port"]
+        self.label = label
+        #self.port = port_dict[self.weekday + "_port"]
+        self.port = port
         if (self.port == 0):
             self.button = None
         else:
@@ -206,19 +176,14 @@ class ButtonAndHistory():
     def append_history(self):
         data = {
             "date": time.strftime("%Y/%m/%d"),
-            "label": config.get_label(),
+            #"label": config.get_label(),
+            "label": self.label,
             "day_of_week": self.weekday,
         }
         print(data)
-        """
-        with open(config.get_history_file_path(),"a") as f:
-            writer = csv.writer(f)
-            value = [time.strftime("%Y/%m/%d"),config.get_label(),self.weekday]
-            if not check_history(value):
-                writer.writerow(value)
-        """
+        
         json_data = json.dumps(data)
-        response = requests.post(
+        requests.post(
             address + "/hukuyou",
             data = json_data,
             headers=config.request_headers()
@@ -256,7 +221,17 @@ def update_tasks():
     set_tasks()
 update_tasks()
 schedule.every(30).seconds.do(update_tasks)
-week_switchs = [ButtonAndHistory("Sunday",6),ButtonAndHistory("Monday",0),ButtonAndHistory("Tuesday",1),ButtonAndHistory("Wednesday",2),ButtonAndHistory("Thursday",3),ButtonAndHistory("Friday",4),ButtonAndHistory("Saturday",5)]
+#week_switchs = [ButtonAndHistory("Sunday",6),ButtonAndHistory("Monday",0),ButtonAndHistory("Tuesday",1),ButtonAndHistory("Wednesday",2),ButtonAndHistory("Thursday",3),ButtonAndHistory("Friday",4),ButtonAndHistory("Saturday",5)]
+
+week_switchs = []
+week_label = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
+ports = config.ports
+
+for port in ports:
+    label = port.label
+    port_config = port.get_port_config()
+    for day in week_label:
+        week_switchs.append(ButtonAndHistory(day,label,port_config[day + "_port"]))
 
 start_button = gpiozero.Button(start_button_port)
 end_button = gpiozero.Button(end_button_port)
@@ -269,9 +244,11 @@ def main():
     while True:
         if start_button.is_pressed and not working:
             v = request_hukuyouTime()["valid"]
-            for i in v:
-                if i["label"] == config.get_label():
-                    hukuyou_valid = i["hukuyouTime"] == 1
+            print(v)
+            for port in ports:
+                for i in v:
+                    if i["label"] == port.label:
+                        hukuyou_valid = i["hukuyouTime"] == 1
             if hukuyou_valid:
                 print("Start")
                 working = True

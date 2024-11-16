@@ -188,6 +188,12 @@ class ButtonAndHistory():
             data = json_data,
             headers=config.request_headers()
         )
+        if (self.label == "朝"):
+            playsound("morning.mp3")
+        elif (self.label == "昼"):
+            playsound("noon.mp3")
+        elif (self.label == "夜"):
+            playsound("night.mp3")
     def get_same_week_day(self):
         week = datetime.date.today().weekday()
         if week == self.day_number:

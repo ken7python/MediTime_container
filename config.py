@@ -48,6 +48,6 @@ class Port:
         print("port config set")
         return {"Sunday_port": self.sunday_port,"Monday_port": self.monday_port, "Tuesday_port": self.tuesday_port, "Wednesday_port": self.wednesday_port, "Thursday_port": self.thursday_port, "Friday_port": self.friday_port, "Saturday_port": self.saturday_port,}
     
-ports = [Port("朝",11,0,0,0,0,0,0),Port("夜",17,27,22,23,24,25,5)]
+ports = [Port("朝",11,4,14,15,18,10,9),Port("昼",17,27,22,23,24,25,5),Port("夜",16,8,7,12,6,13,19)]
 def get_ports():
     return ports

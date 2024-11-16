@@ -25,14 +25,14 @@ end_button_port = config.endButtonPort()
 GPIO.setmode(GPIO.BCM)
 for port_dict in port_dicts:
     for day,pin in port_dict.get_port_config().items():
+        print(f"Setting up port {pin} for {day}")
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(start_button_port, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(end_button_port, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 """
 for day,pin in port_dict.items():
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 """
-GPIO.setup(start_button_port, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(end_button_port, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
 def send_line_notify(notification_message):
     line_notify_api = 'https://notify-api.line.me/api/notify'
     headers = {'Authorization': f'Bearer {LINE_taken}'}
@@ -147,18 +147,6 @@ def set_tasks():
             print(label + "の通知はオフになっています")
     print("set_tasks")
     #print(tasks)
-    #print(tasks)
-# ボタン押し / 離し 動作確認用コード
-"""
-def check_history(value):# データーベースから取り込むべき
-    with open(config.get_history_file_path(),"r") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            print(row)
-            if row[0] == value[0] and row[1] == value[1] and row[2] == value[2]:
-                return True
-    return False
-"""
 day_number_dict = {"Sunday":6,"Monday":0,"Tuesday":1,"Wednesday":2,"Thursday":3,"Friday":4,"Saturday":5}
 class ButtonAndHistory():
     def __init__(self,weekday,label,port):
@@ -172,7 +160,12 @@ class ButtonAndHistory():
         if (self.port == 0):
             self.button = None
         else:
-            self.button = gpiozero.Button(self.port)
+            try:
+                print(f"Initializing button on port {self.port}")
+                self.button = gpiozero.Button(self.port)
+            except RuntimeError as e:
+                print(f"Failed to initialize button on port {self.port}: {e}")
+                self.button = None
     def append_history(self):
         data = {
             "date": time.strftime("%Y/%m/%d"),
@@ -204,8 +197,7 @@ class ButtonAndHistory():
         if (self.button == None):
             self.SwitchStatus = False
         else:
-            self.SwitchStatus = self.button.is_pressed#GPIO.input(self.port)
-        #print(self.SwitchStatus)
+            self.SwitchStatus = self.button.is_pressed
         if self.LastStatus != self.SwitchStatus:
             if self.SwitchStatus == 1:
                 print(f"{self.weekday}のボタンが押された")

@@ -43,14 +43,22 @@ def send_message(label):
 
 #send_line_notify("test")
 def request_hukuyouTime():
-    response = requests.get(address + "/hukuyouTime",headers=config.request_headers())
-    print("request_hukuyouTime")
-    return response.json()
+    try:
+        response = requests.get(address + "/hukuyouTime",headers=config.request_headers())
+        print("request_hukuyouTime")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(e)
+        lcd_string("Faild To Request",LCD_LINE_1)
 
 def request_hukuyouHistory():
-    response = requests.get(address + "/hukuyou",headers=config.request_headers())
-    print("request_hukuyouTime")
-    return response.json()["hukuyouHistory"]
+    try:
+        response = requests.get(address + "/hukuyou",headers=config.request_headers())
+        print("request_hukuyouTime")
+        return response.json()["hukuyouHistory"]
+    except requests.exceptions.RequestException as e:
+        print(e)
+        lcd_string("Faild To Request",LCD_LINE_1)
 """
 global hukuyouTime
 hukuyouTime = request_hukuyouTime()["hukuyouTime"]
